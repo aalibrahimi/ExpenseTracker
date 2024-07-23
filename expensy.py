@@ -1,4 +1,4 @@
-#empty list to keep trach of our transactions
+#empty list to keep track of our transactions
 transactions = []
 
 def transy(date, description, amount, category):
@@ -13,8 +13,8 @@ def transy(date, description, amount, category):
 
 #this function is so we could display our transactions
 def display():
-    for transaction in transaction:
-        print(f"{transaction['date']}, Descritpion: {transactions['description']}, Amount: {transactions['amount']}, category: {transactions['category']} ")
+    for transaction in transactions:
+        print(f"{transaction['date']}, Descritpion: {transaction['description']}, Amount: {transaction['amount']}, category: {transaction['category']} ")
 
 transy('222222', 'groceries', 20, 'food')
 display()
