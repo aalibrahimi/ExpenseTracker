@@ -1,2 +1,25 @@
+# Categories
+category
+Transportation
+Utilities
+Entertainment
+Dining Out
+Healthcare
+Education
+Personal Care
+Insurance
+Savings
+Investments
+Gifts
+Travel
+Home Maintenance
+Subscriptions
+Pets
+Other
+# Transactions
 date,description,amount,category
-22-10-1989,pizza,18.20,food
+10/27/2099,yarn,5.62,clothes
+10/09/2010,hat,24.01,clothes
+10/28/2024,gatorade,11.0,Dining Out
+incorrect value,22,22.0,other
+08/06/2024,rent,2540.09,Insurance
