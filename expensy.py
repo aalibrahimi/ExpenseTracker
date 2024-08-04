@@ -2,7 +2,7 @@ import csv
 import os
 import re
 from datetime import datetime
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as lot
 
 # FolderName = 'EXPENSETRACKER'
 # TRANSACTION_FILE = os.path.join(FolderName, 'transaction.csv')
@@ -123,14 +123,14 @@ def spendingByCategories():
     return categories  # Move this outside the loop
 def plotSpending():
     categories = spendingByCategories()
-    plt.figure(figsize=(10, 6))
-    plt.bar(categories.keys(), categories.values())
-    plt.title('Spending by Category')
-    plt.xlabel('Category')
-    plt.ylabel('Amount ($)')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+    lot.figure(figsize=(10, 6))
+    lot.bar(categories.keys(), categories.values())
+    lot.title('Spending by Category')
+    lot.xlabel('Category')
+    lot.ylabel('Amount ($)')
+    lot.xticks(rotation=45)
+    lot.tight_layout()
+    lot.show()
 
 def main():
     loadInfo()
