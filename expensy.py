@@ -3,6 +3,11 @@ import os
 import re
 from datetime import datetime
 import matplotlib.pyplot as lot
+import logging
+
+#configure logging to keep track of errors
+logging.basicConfig(filename='app.log',level=logging.ERROR)
+
 
 # FolderName = 'EXPENSETRACKER'
 # TRANSACTION_FILE = os.path.join(FolderName, 'transaction.csv')
@@ -14,7 +19,9 @@ predefinedCategories = []  #pulls category I added within the csv file
 # if not os.path.exists(FolderName):
 #     os.makedirs(FolderName)
 
-
+def logError(errorMessage):
+    logging.error(errorMessage)
+    print("An error has occured. Please check the logs for more info")
 
 
 #creating a function that contains a list for what to keep track of: amount, category, description, and date
@@ -27,86 +34,80 @@ def transy(date, description, amount, category):
     }
 
     multiTransaction.append(transaction)
-    saveInfo()
+    try:
+        saveInfo()
+    except Exception as e:
+        logError(f"Error saving info: {e}")
+
 #this function is so we could display our multiTransaction
 def display():
     for transaction in multiTransaction:
         print(f"{transaction['date']}, Descritpion: {transaction['description']}, Amount: {transaction['amount']}, category: {transaction['category']} ")
 
 def saveInfo():
-    with open(TRANSACTION_FILE, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        # Write the categories section
-        writer.writerow(["# Categories"])
-        for category in predefinedCategories:
-            writer.writerow([category])
-        # Write the transactions section
-        writer.writerow(["# Transactions"])
-        transaction_writer = csv.DictWriter(file, fieldnames=['date', 'description', 'amount', 'category'])
-        transaction_writer.writeheader()  # This writes 'date,description,amount,category'
-        for transaction in multiTransaction:
-            transaction_writer.writerow(transaction)
+    try:
+        with open(TRANSACTION_FILE, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            # Write the categories section
+            writer.writerow(["# Categories"])
+            for category in predefinedCategories:
+                writer.writerow([category])
+            # Write the transactions section
+            writer.writerow(["# Transactions"])
+            transaction_writer = csv.DictWriter(file, fieldnames=['date', 'description', 'amount', 'category'])
+            transaction_writer.writeheader()  # This writes 'date,description,amount,category'
+            for transaction in multiTransaction:
+                transaction_writer.writerow(transaction)
+    except IOError as e:
+        logError(f"IOError while writing to file: {e}")
 
 
-# def loadInfo():
-#     if os.path.exists(TRANSACTION_FILE):
-#         #r = read-
-#         with open(TRANSACTION_FILE, mode ='r') as file:
-#             reader = csv.DictReader(file)
-#             for row in reader:
-#                 transaction = {
-#                     'date': row['date'],
-#                     'description': row['description'],
-#                     'amount' : row['amount'],
-#                     'category': row['category']
-                        
-#                 }
-#                 multiTransaction.append(transaction)
+
 def loadInfo():
     if os.path.exists(TRANSACTION_FILE):
-        with open(TRANSACTION_FILE, mode='r') as file:
-            reader = csv.reader(file)
-            section = None
-            for row in reader:
-                if row and row[0].startswith("#"):
-                    section = row[0]
-                elif section == "# Categories":
-                    if row:
-                        predefinedCategories.append(row[0])
-                elif section == "# Transactions":
-                    if row[0] == 'date':  # Skip the header row
-                        continue
-                    if len(row) == 4:
-                        try:
-                            transaction = {
-                                'date': row[0],
-                                'description': row[1],
-                                'amount': float(row[2]),
-                                'category': row[3]
-                            }
-                            multiTransaction.append(transaction)
-                        except ValueError as e:
-                            print(f"Error processing row: {row}, {e}")
-                    else:
-                        print(f"Unexpected row format: {row}")
+        try: 
+            with open(TRANSACTION_FILE, mode='r') as file:
+                reader = csv.reader(file)
+                section = None
+                for row in reader:
+                    if row and row[0].startswith("#"):
+                        section = row[0]
+                    elif section == "# Categories":
+                        if row:
+                            predefinedCategories.append(row[0])
+                    elif section == "# Transactions":
+                        if row[0] == 'date':  # Skip the header row
+                            continue
+                        if len(row) == 4:
+                            try:
+                                transaction = {
+                                    'date': row[0],
+                                    'description': row[1],
+                                    'amount': float(row[2]),
+                                    'category': row[3]
+                                }
+                                multiTransaction.append(transaction)
+                            except ValueError as e:
+                                print(f"Error processing row: {row}, {e}")
+                        else:
+                            print(f"Unexpected row format: {row}")
+        except IOError as e:
+            logError(f"IOError while reading from file: {e}")
+
 
 # Function to format the date
 def formatDate(date):
-    # \d matches any digit (equivalent to [0-9])
-    # {8} specifies exactly 8 occurrences of the preceding element (\d) 
-    # if re.match(r"^\d{8}$", date):
-    #     return f"{date[:2]}-{date[2:4]}-{date[4:]}"
-    # else:
-    #     return None
      try:
         return datetime.strptime(date, "%m%d%Y").strftime("%m/%d/%Y")
-     except ValueError:
-        return "incorrect value"
+     except ValueError as e:
+        logError(f"Error wrong input for date format: {date}, {e}")
+        return None
 
 def validateAmount(amount):
     try:
         return float(amount)
-    except ValueError:
+    except ValueError as e:
+        logError(f"Wrong input for float amount {amount}, {e}")
         return None
 
 def getCategories():
@@ -116,11 +117,16 @@ def getCategories():
 
 def spendingByCategories():
     categories = {}
-    for transaction in multiTransaction:
-        category = transaction['category']
-        amount = float(transaction['amount'])
-        categories[category] = categories.get(category, 0) + amount
-    return categories  # Move this outside the loop
+    try:
+        for transaction in multiTransaction:
+            category = transaction['category']
+            amount = float(transaction['amount'])
+            categories[category] = categories.get(category, 0) + amount
+        return categories  # Move this outside the loop
+    except Exception as e:
+        logError(f"Error calculating spending by categories")
+    return categories
+
 def plotSpending():
     categories = spendingByCategories()
     lot.figure(figsize=(10, 6))
@@ -131,7 +137,35 @@ def plotSpending():
     lot.xticks(rotation=45)
     lot.tight_layout()
     lot.show()
-
+    
+#need to experiment with this    
+def user_input(prompt, validInputs=None):
+    wordNumber = {
+        "1": "1",
+        "one": "1",
+        "2": "2",
+        "two": "2",
+        "3": "3",
+        "three": "3",
+        "4": "4",
+        "four": "4",
+        "5": "5",
+        "five": "5",
+        "add transaction": "1",
+        "view transaction": "2",
+        "view spending by categories": "3",
+        "plot spending": "4",
+        "exit": "5"
+    }
+    while True:
+        userput = input(prompt).strip().lower()
+        if userput in wordNumber:
+            userput = wordNumber[userput]
+        if validInputs and userput not in validInputs:
+            print(f"invalid input. Please enter one of the following:  {', '.join(validInputs)} or their word equivalents.")
+        else:
+            return userput
+        
 def main():
     loadInfo()
 
@@ -140,7 +174,8 @@ if __name__ == "__main__":
     while True:
         print("\nCredit Card Tracker Expense\n1. Add transaction\n2. View Transaction\n3. View Spending by Categories\n4. Plot Spending\n5. Exit")
 
-        decision = input("Pick an option: ")
+        # decision = input("Pick an option: ")
+        decision = user_input("Pick an option: ", validInputs=['1', '2', '3', '4', '5'])
         if decision == '1':
             date = input("Enter date MMDDYYYY: ") 
             formatted_date = formatDate(date)
@@ -165,10 +200,6 @@ if __name__ == "__main__":
         elif decision == '2':
             display()
 
-        # elif decision == '3':
-        #     categories = spendingByCategories()
-        #     for category, amount in categories.items():
-        #         print(f"{category}: ${amount:.2f}")
         elif decision == '3':
             print("Debug: Entering option 3")  # Debug print
             categories = spendingByCategories()
@@ -186,6 +217,3 @@ if __name__ == "__main__":
             exit()
         else:
             print("invalid inputo!")
-#python expensy.py  
-# transy('222222', 'groceries', 20, 'food')
-# display()
