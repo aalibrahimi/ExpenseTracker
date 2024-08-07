@@ -10,8 +10,20 @@
     <h1>Monthly Expenses</h1>
 
     <div id = "ExpenseForm">
+    
         <input type="date" id= "expenseDate" required>
-        <input type="text" id="expenseCategory" placeholder="Category" required>
+        <select type="text" id="expenseCategory" placeholder="Category" required>
+            <option value="" style="font-weight:bold;">Select Category: </option>
+            <option value="Groceries"> Groceries</option>
+            <option value="Rent"> Rent</option>
+            <option value="Insurance"> Insurance</option>
+            <option value="Dining Out"> Dining Out</option>
+            <option value="Entertainment"> Entertainment</option>
+            <option value="Clothes"> Clothes</option>
+            <option value="Transportation"> Transportation</option>
+            <option value="other"> other</option>
+
+
         <input type="number" id="expenseAmount" placeholder="Amount" required>
         <button onclick="addExpenseFromForm()">Add Expense</button>
 
