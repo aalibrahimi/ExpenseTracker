@@ -2,66 +2,113 @@ import csv
 import os
 import re
 from datetime import datetime
-import matplotlib.pyplot as lot
+import matplotlib.pyplot as plt
+import sqlite3
 
-# FolderName = 'EXPENSETRACKER'
-# TRANSACTION_FILE = os.path.join(FolderName, 'transaction.csv')
-TRANSACTION_FILE = 'transaction.csv'
 multiTransaction = []
-predefinedCategories = []  #pulls category I added within the csv file
-#empty list to keep track of our transactions
+predefinedCategories = [] 
 
-# if not os.path.exists(FolderName):
-#     os.makedirs(FolderName)
+def initialize_db(): 
+    connection = sqlite3.connect('expense_tracker.db')
+    #cursor allows user to work with the sql queries
+    cursor = connection.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE
+        )
+        ''')
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        description TEXT,
+        amount REAL,
+        category_id INTEGER,
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+    )
+    ''')
+    #Commiting the save items into the database so info is not lost
+    connection.commit()
+    #Best practice to close the database for resource management
+    connection.close()
 
 
-
-
-#creating a function that contains a list for what to keep track of: amount, category, description, and date
+# Add a transaction
 def transy(date, description, amount, category):
-    transaction = {
-        'date' : date,
-        'description' : description,
-        'amount': amount,
-        'category': category
-    }
+    connection = sqlite3.connect('expense_tracker.db')
+    cursor = connection.cursor()
 
-    multiTransaction.append(transaction)
-    saveInfo()
-#this function is so we could display our multiTransaction
-def display():
-    for transaction in multiTransaction:
-        print(f"{transaction['date']}, Descritpion: {transaction['description']}, Amount: {transaction['amount']}, category: {transaction['category']} ")
+     # Insert category if it doesn't exist
+     # The ignore keyword ignores the category name if it already exists
+    cursor.execute('INSERT OR IGNORE INTO categories (name) VALUES (?)', (category,))
 
-def saveInfo():
-    with open(TRANSACTION_FILE, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        # Write the categories section
-        writer.writerow(["# Categories"])
-        for category in predefinedCategories:
-            writer.writerow([category])
-        # Write the transactions section
-        writer.writerow(["# Transactions"])
-        transaction_writer = csv.DictWriter(file, fieldnames=['date', 'description', 'amount', 'category'])
-        transaction_writer.writeheader()  # This writes 'date,description,amount,category'
-        for transaction in multiTransaction:
-            transaction_writer.writerow(transaction)
+    # Get the category ID
+    # Since there is an id slot in the categories table
+    # We can use that id and associate it with a certain category
+    # The ? is the name of the category and that ? is stored
+    # in the tuple category (category, ))
+    # It is then fetched using the fetchone method and it will return the one value
+    # which is the 0th index 
+    cursor.execute('SELECT id FROM categories WHERE name = ?', (category,))
+    category_id = cursor.fetchone()[0]
 
+    # Insert the transaction
+    # This allows us to insert our values for our four categories
+    cursor.execute('INSERT INTO transactions (date, description, amount, category_id) VALUES (?, ?, ?, ?)', 
+                   (date, description, amount, category_id))
+    
+    connection.commit()
+    connection.close()
 
-# def loadInfo():
-#     if os.path.exists(TRANSACTION_FILE):
-#         #r = read-
-#         with open(TRANSACTION_FILE, mode ='r') as file:
-#             reader = csv.DictReader(file)
-#             for row in reader:
-#                 transaction = {
-#                     'date': row['date'],
-#                     'description': row['description'],
-#                     'amount' : row['amount'],
-#                     'category': row['category']
-                        
-#                 }
-#                 multiTransaction.append(transaction)
+# Load information from the database
+def loadInfo():
+    #global acccesses the two list in the class
+    global multiTransaction, predefinedCategories
+    connection = sqlite3.connect('expense_tracker.db')
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT name FROM categories')
+    #this takes all categories that already exist and retrieves all the
+    # rows from the query result
+    # the row[0] is the category of the query row so that is fetched 
+    # extend gets all the data so we dont have a nested structure
+    predefinedCategories.extend([row[0] for row in cursor.fetchall()])
+
+       # Load transactions
+    cursor.execute('''
+    SELECT t.date, t.description, t.amount, c.name
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    ''')
+    rows = cursor.fetchall()
+    multiTransaction = [{'date': row[0], 'description': row[1], 'amount': row[2], 'category': row[3]} for row in rows]
+    connection.close()
+
+# Function to get categories
+def getCategories():
+    connection = sqlite3.connect('expense_tracker.db')
+    cursor = connection.cursor()
+    cursor.execute('SELECT name FROM categories')
+    categories = [row[0] for row in cursor.fetchall()]
+    connection.close()
+    return categories
+
+# Function to compute spending by category
+def spendingByCategories():
+    connection = sqlite3.connect('expense_tracker.db')
+    cursor = connection.cursor()
+    cursor.execute('''
+    SELECT c.name, SUM(t.amount)
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    GROUP BY c.name
+    ''')
+    categories = {row[0]: row[1] for row in cursor.fetchall()}
+    connection.close()
+    return categories
+
+'''
 def loadInfo():
     if os.path.exists(TRANSACTION_FILE):
         with open(TRANSACTION_FILE, mode='r') as file:
@@ -89,6 +136,7 @@ def loadInfo():
                             print(f"Error processing row: {row}, {e}")
                     else:
                         print(f"Unexpected row format: {row}")
+'''
 
 # Function to format the date
 def formatDate(date):
@@ -109,11 +157,12 @@ def validateAmount(amount):
     except ValueError:
         return None
 
-def getCategories():
+'''def getCategories():
      transactionCategories = set(transaction['category'] for transaction in multiTransaction)
      allCategories = sorted(set(predefinedCategories + list(transactionCategories)))
      return allCategories
-
+'''
+'''
 def spendingByCategories():
     categories = {}
     for transaction in multiTransaction:
@@ -121,25 +170,25 @@ def spendingByCategories():
         amount = float(transaction['amount'])
         categories[category] = categories.get(category, 0) + amount
     return categories  # Move this outside the loop
+    '''
 def plotSpending():
     categories = spendingByCategories()
-    lot.figure(figsize=(10, 6))
-    lot.bar(categories.keys(), categories.values())
-    lot.title('Spending by Category')
-    lot.xlabel('Category')
-    lot.ylabel('Amount ($)')
-    lot.xticks(rotation=45)
-    lot.tight_layout()
-    lot.show()
+    plt.figure(figsize=(10, 6))
+    plt.bar(categories.keys(), categories.values())
+    plt.title('Spending by Category')
+    plt.xlabel('Category')
+    plt.ylabel('Amount ($)')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 
 def main():
+    initialize_db()
     loadInfo()
-
 if __name__ == "__main__":
     main()
     while True:
         print("\nCredit Card Tracker Expense\n1. Add transaction\n2. View Transaction\n3. View Spending by Categories\n4. Plot Spending\n5. Exit")
-
         decision = input("Pick an option: ")
         if decision == '1':
             date = input("Enter date MMDDYYYY: ") 
