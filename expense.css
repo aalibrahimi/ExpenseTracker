@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1 {
+    color: #333;
+}
+#expenseForm {
+    margin-bottom: 20px;
+}
+#expenseForm input, #expenseForm button {
+    margin: 5px 0;
+    padding: 5px;
+}
+#monthSelector {
+    margin-bottom: 10px;
+}
+#expenseList {
+    list-style-type: none;
+    padding: 0;
+}
+#expenseList li {
+    background-color: #f0f0f0;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+#total {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+}

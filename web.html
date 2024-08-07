@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href ="expense.css">
+</head>
+<body>
+    <h1>Monthly Expenses</h1>
+
+    <div id = "ExpenseForm">
+        <input type="date" id= "expenseDate" required>
+        <input type="text" id="expenseCategory" placeholder="Category" required>
+        <input type="number" id="expenseAmount" placeholder="Amount" required>
+        <button onclick="addExpenseFromForm()">Add Expense</button>
+
+    </div>
+
+    <div id = "monthSelector">
+        <label for ="monthPicker">Select Month:</label>
+        <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+    </div>
+
+    <ul id="expenseList"></ul>
+    <p id="total"></p>
+
+    <script src="javascript.js"></script>
+</body>
+</html>
