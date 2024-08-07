@@ -2,8 +2,10 @@ import csv
 import os
 import re
 from datetime import datetime
-import matplotlib.pyplot as lot
+import matplotlib.pyplot as plt
 import logging
+import seaborn as sns
+from matplotlib.ticker import FuncFormatter
 
 #configure logging to keep track of errors
 logging.basicConfig(filename='app.log',level=logging.ERROR)
@@ -127,16 +129,60 @@ def spendingByCategories():
         logError(f"Error calculating spending by categories")
     return categories
 
-def plotSpending():
+# def plotSpending():
+    # categories = spendingByCategories()
+    # lot.figure(figsize=(10, 6))
+    # lot.bar(categories.keys(), categories.values())
+    # lot.title('Spending by Category')
+    # lot.xlabel('Category')
+    # lot.ylabel('Amount ($)')
+    # lot.xticks(rotation=45)
+    # lot.tight_layout()
+    # lot.show()
+def plotSpending(graph_type='bar'):
     categories = spendingByCategories()
-    lot.figure(figsize=(10, 6))
-    lot.bar(categories.keys(), categories.values())
-    lot.title('Spending by Category')
-    lot.xlabel('Category')
-    lot.ylabel('Amount ($)')
-    lot.xticks(rotation=45)
-    lot.tight_layout()
-    lot.show()
+    if not categories:
+        print("No spending data to display.")
+        return
+
+    # Set the style
+    plt.style.use('ggplot')
+
+    # Create the figure and axis objects
+    fig, ax = plt.subplots(figsize=(12, 7))
+
+    # Format the y-axis to display currency
+    def currency_formatter(x, p):
+        return f'${x:,.0f}'
+    
+    ax.yaxis.set_major_formatter(FuncFormatter(currency_formatter))
+
+    # Sort categories by amount (descending)
+    sorted_categories = dict(sorted(categories.items(), key=lambda item: item[1], reverse=True))
+
+    if graph_type == 'bar':
+        ax.bar(list(sorted_categories.keys()), list(sorted_categories.values()))
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    elif graph_type == 'pie':
+        plt.pie(list(sorted_categories.values()), labels=list(sorted_categories.keys()), autopct='%1.1f%%', startangle=90)
+        plt.axis('equal')
+    elif graph_type == 'line':
+        ax.plot(list(sorted_categories.keys()), list(sorted_categories.values()), marker='o')
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+    # Set title and labels
+    plt.title('Spending by Category', fontsize=20, pad=20)
+    if graph_type != 'pie':
+        plt.xlabel('Category', fontsize=14, labelpad=10)
+        plt.ylabel('Amount ($)', fontsize=14, labelpad=10)
+
+    # Adjust layout and display
+    plt.tight_layout()
+    plt.show()
+
+
+
+
     
 #need to experiment with this    
 def user_input(prompt, validInputs=None):
@@ -211,9 +257,10 @@ if __name__ == "__main__":
                     print(f"{category}: ${amount:.2f}")
 
         elif decision == '4':
-            plotSpending()
+            graph_options = ['bar', 'pie', 'line']
+            graph_type = user_input("Choose a graph type (bar/pie/line): ", validInputs=graph_options)
+            plotSpending(graph_type)
         elif decision == '5':
             print("Exiting program see ya!")
             exit()
-        else:
-            print("invalid inputo!")
+       
