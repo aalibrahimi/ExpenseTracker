@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    <link rel="stylesheet" href ="expense.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='expense.css') }}">
 </head>
 <body>
     <h1>Monthly Expenses</h1>
@@ -37,6 +37,6 @@
     <ul id="expenseList"></ul>
     <p id="total"></p>
 
-    <script src="javascript.js"></script>
+    <script src="{{ url_for('static', filename='javascript.js') }}"></script>
 </body>
 </html>
