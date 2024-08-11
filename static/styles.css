@@ -4,3 +4,17 @@ body {
     text-align: center;
     margin-top: 50px;
 }
+
+.input {
+    position: absolute;
+}
+
+.header-input {
+    color: #fbbf4f;
+    position: inherit;
+}
+
+
+.number-input {
+    background-color: aquamarine;
+}

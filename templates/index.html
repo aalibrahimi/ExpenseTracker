@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <form action="/submit" method="post">
-        <input type="text" name="name" placeholder="Enter your name">
-        <input type="submit" value="Submit">
-    </form>
+    <section id="output-summary">
+        <embed id="output-display"> Add Python script for it to display 'summary uitgaven'
+    </section>
+    <section id="input" class="input">
+        <h1 id="input-head" class="header-input">Enter New Amount to Track</h1>
+        <input id="number-input" class="number-input" type="number" name="Enter New Amount Here">
+        <button id="btn-apply">Apply</button>
+    </section>
+    <section id="tags">
+        <button id="tag1">Tag1</button>
+        <button id="tag2">Tag2</button>
+        <button id="tag3">Tag3</button>
+    </section>
 </body>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </html>

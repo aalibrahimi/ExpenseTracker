@@ -17,6 +17,7 @@ def submit():
     return f'Hello, {name}!'
 
 # add a 'stop' button to stop server from running without having to close terminal
+# Work on styling when possible bc base element of code is done
 
 
 # ---
