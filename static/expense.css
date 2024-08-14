@@ -1,10 +1,29 @@
 :root {
-    --primary-color: #377ccb;  /* Saddle Brown */
-    --secondary-color: #000000;  /* Chocolate */
-    --accent-color: #f1ab92;  /* Coral */
-    --text-color: #0f0f0f;
-    --background-color: #fe7474;  /* Light cream */
-    --card-background: #ecb2b2;
+    --primary-color: #40E0D0;
+    --secondary-color: #2F4F4F;
+    --accent-color: #FF6B6B;
+    --text-color: #333333;
+    --background-color: #F0F8FF;
+    --card-background: #FFFFFF;
+  /* --primary-color: #FF7F50;
+  --secondary-color: #8B4513;
+  --accent-color: #FFD700;
+  --text-color: #4A0E0E;
+  --background-color: #FFF0F5;
+  --card-background: #FFFAF0; */
+  /* --primary-color: #20B2AA;
+  --secondary-color: #222228;
+  --accent-color: #FFA07A;
+  --text-color: #000080;
+  --background-color: #E0FFFF;
+  --card-background: #FFFFFF; */
+  /* --primary-color: #8B4513;
+  --secondary-color: #556B2F;
+  --accent-color: #DAA520;
+  --text-color: #3C1414;
+  --background-color: #FAEBD7;
+  --card-background: #FFF8DC;
+    */
   }
   
   body {
@@ -67,6 +86,7 @@
     flex-wrap: wrap;
     gap: 15px;
     margin-bottom: 30px;
+    /* background-color: #FF6347; */
   }
   
   #expenseForm input,
