@@ -1,17 +1,19 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import json
 from datetime import datetime
 from expensy import (transy, display, loadInfo, saveInfo, spendingByCategories, 
                      plotSpending, formatDate, validateAmount, getCategories, multiTransaction)
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import io
 import base64
-
+from flask import jsonify, request
+from datetime import datetime
+import traceback
 
 app = Flask(__name__)
-# CORS(app, resources={r"/*": {"origins": "*"}})
 CORS(app, resources={r"/*": {"origins": "http://localhost:5001"}})
-# CORS(app, resources={r"/*": {"origins": "http://localhost:YOUR_FRONTEND_PORT"}})
 
 # Load existing transactions when the app starts
 loadInfo()
@@ -22,25 +24,57 @@ def index():
 
 @app.route('/add_expense', methods=['POST'])
 def add_expense():
-    data = request.json
-    date = formatDate(data['date'])
-    amount = validateAmount(data['amount'])
-    if date and amount is not None:
-        transy(date, data['description'], amount, data['category'])
+    try:
+        data = request.json
+        if not data or 'date' not in data or 'category' not in data or 'amount' not in data:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        date = datetime.strptime(data['date'], '%m-%d-%Y').strftime('%m-%d-%Y')
+        category = data['category']
+        amount = validateAmount(data['amount'])
+
+        if amount is None:
+            return jsonify({"error": "Invalid amount"}), 400
+
+        transy(date, amount, category)
         saveInfo()
         return jsonify({'message': 'Expense added successfully'}), 201
-    else:
-        return jsonify({'message': 'Invalid date or amount'}), 400
+    except ValueError as ve:
+        return jsonify({"error": f"Invalid data format: {str(ve)}"}), 400
+    except Exception as e:
+        print(f"Error in add_expense: {str(e)}")  # Log the error
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/get_expenses', methods=['GET'])
 def get_expenses():
-    # month = int(request.args.get('month'))
-    # year = int(request.args.get('year'))
-    # expenses = [exp for exp in multiTransaction 
-    #             if datetime.strptime(exp['date'], '%m/%d/%Y').month == month 
-    #             and datetime.strptime(exp['date'], '%m/%d/%Y').year == year]
-    # return jsonify(expenses)
-    return jsonify(multiTransaction)
+    try:
+        month = request.args.get('month', type=int)
+        year = request.args.get('year', type=int)
+        
+        print(f"Received request for expenses: month={month}, year={year}")  # Debug log
+        
+        if month is None or year is None:
+            return jsonify({"error": "Month and year are required parameters"}), 400
+
+        filtered_expenses = []
+        for expense in multiTransaction:
+            try:
+                expense_date = datetime.strptime(expense['date'], '%m-%d-%Y')
+                if expense_date.month == month and expense_date.year == year:
+                    filtered_expenses.append(expense)
+            except ValueError as ve:
+                print(f"Error parsing date for expense: {expense}. Error: {str(ve)}")
+                # Skip this expense and continue with the next one
+                continue
+
+        print(f"Filtered expenses: {filtered_expenses}")  # Debug log
+        return jsonify(filtered_expenses)
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}\n{traceback.format_exc()}"
+        print(error_message)  # Log the full error traceback
+        return jsonify({"error": "An internal server error occurred. Please try again later."}), 500
 
 @app.route('/get_categories', methods=['GET'])
 def get_categories():
@@ -48,21 +82,17 @@ def get_categories():
 
 @app.route('/spending_by_categories', methods=['GET'])
 def spending_by_categories():
-    return jsonify(spendingByCategories())
+    categories = spendingByCategories()
+    return jsonify(categories)
 
 @app.route('/plot_spending', methods=['GET'])
 def plot_spending():
-    # graph_type = request.args.get('type', 'bar')
-    # # Note: This won't work directly as plotSpending() shows a plot.
-    # # You might need to save the plot as an image and return its URL,
-    # # or use a JavaScript charting library on the frontend.
-    # plotSpending(graph_type)
-    # return jsonify({'message': 'Plot generated'}), 200
     graph_type = request.args.get('type', 'bar')
-    plt_buffer = io.BytesIO()
-    plot_spending(graph_type, plt_buffer)
-    plot_data = base64.b64encode(plt_buffer.getvalue()).decode()
-    return jsonify({'plot': plot_data})
+    plot_data = plotSpending(graph_type)
+    if plot_data:
+        return jsonify({'plot': plot_data})
+    else:
+        return jsonify({'error': 'No data to plot'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
