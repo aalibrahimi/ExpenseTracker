@@ -7,6 +7,8 @@ import logging
 import seaborn as sns
 from matplotlib.ticker import FuncFormatter
 
+
+
 #configure logging to keep track of errors
 logging.basicConfig(filename='app.log',level=logging.ERROR)
 
@@ -179,7 +181,11 @@ def plotSpending(graph_type='bar'):
     # Adjust layout and display
     plt.tight_layout()
     plt.show()
-
+    
+    if buffer:
+        plt.savefig(buffer, format='png')
+    else:
+        plt.show()
 
 
 
