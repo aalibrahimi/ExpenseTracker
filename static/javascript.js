@@ -19,31 +19,47 @@ function addExpenseFromForm() {
     const amount = parseFloat(document.getElementById('expenseAmount').value);
 
     if (date && category && !isNaN(amount)) {
+        //fomrating the date to mm/dd/yyyy
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+
+        const expenseData = { date: formattedDate, category, amount };
+        console.log('Sending expense data:', expenseData);  // Log the data being sent
+
         fetch('http://localhost:5001/add_expense', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ date, category, amount }),
+            body: JSON.stringify(expenseData),
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Success:', data);
             updateDisplayedMonth();
+            // Clear form
+            document.getElementById('expenseDate').value = '';
+            document.getElementById('expenseCategory').value = '';
+            document.getElementById('expenseAmount').value = '';
         })
         .catch((error) => {
             console.error('Error:', error);
+            alert(`Failed to add expense. Error: ${error.message}`);
         });
-
-        // Clear form
-        document.getElementById('expenseDate').value = '';
-        document.getElementById('expenseCategory').value = '';
-        document.getElementById('expenseAmount').value = '';
     } else {
         alert('Please fill all fields correctly');
     }
 }
-
 // Function to get expenses for a specific month and year
 function getMonthlyExpenses(month, year) {
     return expenses.filter(expense => 
@@ -60,9 +76,14 @@ function calculateMonthlyTotal(month, year) {
 
 // Function to display monthly expenses
 function displayMonthlyExpenses(month, year) {
-    // fetch(`http://127.0.0.1:5001/get_expenses?month=${month + 1}&year=${year}`)
-    fetch('http://localhost:5001/get_expenses')
-    .then(response => response.json())
+    fetch(`http://localhost:5001/get_expenses?month=${month + 1}&year=${year}`)
+    // fetch('http://localhost:5001/get_expenses')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(expenses => {
         const expenseList = document.getElementById('expenseList');
         expenseList.innerHTML = '';
@@ -80,6 +101,7 @@ function displayMonthlyExpenses(month, year) {
     })
     .catch((error) => {
         console.error('Error:', error);
+        alert('Failed to fetch expenses. Please try again.');
     });
 }
 //Tab Switching
@@ -89,9 +111,76 @@ document.querySelectorAll('.tab-button').forEach(button => {
         switchTab(tabId);
     })
 });
+document.getElementById('graphType').addEventListener('change', loadGraphs);
+function loadGraphs() {
+    const graphType = document.getElementById('graphType').value;
+    fetch(`http://localhost:5001/spending_by_categories`)
+        .then(response => response.json())
+        .then(data => {
+            const categories = Object.keys(data);
+            const amounts = Object.values(data);
 
-function switchTab(tabId)
-{
+            let trace;
+            let layout;
+
+            switch(graphType) {
+                case 'bar':
+                    trace = {
+                        x: categories,
+                        y: amounts,
+                        type: 'bar'
+                    };
+                    layout = {
+                        title: 'Spending by Category',
+                        xaxis: { title: 'Category' },
+                        yaxis: { title: 'Amount ($)' }
+                    };
+                    break;
+                case 'pie':
+                    trace = {
+                        labels: categories,
+                        values: amounts,
+                        type: 'pie'
+                    };
+                    layout = {
+                        title: 'Spending by Category'
+                    };
+                    break;
+                case 'line':
+                    trace = {
+                        x: categories,
+                        y: amounts,
+                        type: 'scatter',
+                        mode: 'lines+markers'
+                    };
+                    layout = {
+                        title: 'Spending by Category',
+                        xaxis: { title: 'Category' },
+                        yaxis: { title: 'Amount ($)' }
+                    };
+                    break;
+            }
+            //enabling and creating a zoom in/zoom out function
+            const config = {
+                scrollZoom: true //enable zoom using the mouse wheel
+            };
+            Plotly.newPlot('graphContainer', [trace], layout, config);
+            
+            //event listener for refocusing when left clicking
+            const graphContainer = document.getElementById('graphContainer');
+            graphContainer.on('plotly_click', function() 
+            {
+                Plotly.relayout(graphContainer, {
+                    'xaxis.autorange':true,
+                    'yaxis.autorange':true
+                });
+            });
+    
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
@@ -99,32 +188,22 @@ function switchTab(tabId)
     document.querySelectorAll('.tab-button').forEach(button => {
         button.classList.remove('active');
     });
-    document.getElementById(tabId).classList.add('active');
-    document.querySelector(`.tab-button[data-tab="${tabId}]`.classList.add('active'));
-
-    //this is how we load content based on tab
-    if (tabId === 'expenses')
-    {
-        updateDisplayedMonth();
-
-    }else if (tabId === 'graphs') {
-        loadGraphs()
-
+    const tabContent = document.getElementById(tabId);
+    if (tabContent) {
+        tabContent.classList.add('active');
     }
-    else if (tabId === 'categories') {
+    const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+    if (tabButton) {
+        tabButton.classList.add('active');
+    }
+
+    if (tabId === 'expenses') {
+        updateDisplayedMonth();
+    } else if (tabId === 'graphs') {
+        loadGraphs();
+    } else if (tabId === 'categories') {
         loadCategories();
     }
-}
-function loadGraphs()
-{
-    fetch('http://localhost:5001/plot_spending')
-        .then(response => response.json())
-        .then(data => {
-            const graphContainer = document.getElementById('graphs');
-            graphContainer.innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Spending Graph">`;
-        })
-        .catch(error => console.error('Error:', error));
-        
 }
 function loadCategories() 
 {

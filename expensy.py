@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import logging
 import seaborn as sns
 from matplotlib.ticker import FuncFormatter
+import io
+import base64
 
 
 
@@ -29,10 +31,10 @@ def logError(errorMessage):
 
 
 #creating a function that contains a list for what to keep track of: amount, category, description, and date
-def transy(date, description, amount, category):
+def transy(date, amount, category): #removed description
     transaction = {
         'date' : date,
-        'description' : description,
+        # 'description' : description,
         'amount': amount,
         'category': category
     }
@@ -46,7 +48,7 @@ def transy(date, description, amount, category):
 #this function is so we could display our multiTransaction
 def display():
     for transaction in multiTransaction:
-        print(f"{transaction['date']}, Descritpion: {transaction['description']}, Amount: {transaction['amount']}, category: {transaction['category']} ")
+        print(f"{transaction['date']}, Descritpion: Amount: {transaction['amount']}, category: {transaction['category']} ") #removed Descritpion: Amount: {transaction['description']}
 
 def saveInfo():
     try:
@@ -58,7 +60,7 @@ def saveInfo():
                 writer.writerow([category])
             # Write the transactions section
             writer.writerow(["# Transactions"])
-            transaction_writer = csv.DictWriter(file, fieldnames=['date', 'description', 'amount', 'category'])
+            transaction_writer = csv.DictWriter(file, fieldnames=['date', 'amount', 'category']) #removed , 'description'
             transaction_writer.writeheader()  # This writes 'date,description,amount,category'
             for transaction in multiTransaction:
                 transaction_writer.writerow(transaction)
@@ -86,7 +88,7 @@ def loadInfo():
                             try:
                                 transaction = {
                                     'date': row[0],
-                                    'description': row[1],
+                                    # 'description': row[1],
                                     'amount': float(row[2]),
                                     'category': row[3]
                                 }
@@ -144,48 +146,31 @@ def spendingByCategories():
 def plotSpending(graph_type='bar'):
     categories = spendingByCategories()
     if not categories:
-        print("No spending data to display.")
-        return
+        return None
 
-    # Set the style
+    plt.figure(figsize=(12, 7))
     plt.style.use('ggplot')
 
-    # Create the figure and axis objects
-    fig, ax = plt.subplots(figsize=(12, 7))
-
-    # Format the y-axis to display currency
-    def currency_formatter(x, p):
-        return f'${x:,.0f}'
-    
-    ax.yaxis.set_major_formatter(FuncFormatter(currency_formatter))
-
-    # Sort categories by amount (descending)
-    sorted_categories = dict(sorted(categories.items(), key=lambda item: item[1], reverse=True))
-
     if graph_type == 'bar':
-        ax.bar(list(sorted_categories.keys()), list(sorted_categories.values()))
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        plt.bar(list(categories.keys()), list(categories.values()))
     elif graph_type == 'pie':
-        plt.pie(list(sorted_categories.values()), labels=list(sorted_categories.keys()), autopct='%1.1f%%', startangle=90)
-        plt.axis('equal')
+        plt.pie(list(categories.values()), labels=list(categories.keys()), autopct='%1.1f%%')
     elif graph_type == 'line':
-        ax.plot(list(sorted_categories.keys()), list(sorted_categories.values()), marker='o')
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        plt.plot(list(categories.keys()), list(categories.values()), marker='o')
 
-    # Set title and labels
-    plt.title('Spending by Category', fontsize=20, pad=20)
-    if graph_type != 'pie':
-        plt.xlabel('Category', fontsize=14, labelpad=10)
-        plt.ylabel('Amount ($)', fontsize=14, labelpad=10)
-
-    # Adjust layout and display
+    plt.title('Spending by Category')
+    plt.xlabel('Category')
+    plt.ylabel('Amount ($)')
+    plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
-    
-    if buffer:
-        plt.savefig(buffer, format='png')
-    else:
-        plt.show()
+
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.getvalue()).decode()
+    plt.close()
+
+    return image_base64
 
 
 
@@ -232,7 +217,7 @@ if __name__ == "__main__":
             date = input("Enter date MMDDYYYY: ") 
             formatted_date = formatDate(date)
 
-            description = input("What was this transaction for: ")
+            # description = input("What was this transaction for: ")
             amount = input("How much was the transaction?: ")
             # category = input("What category of spending is this under?: ")
             correctAmount = validateAmount(amount)
@@ -248,7 +233,7 @@ if __name__ == "__main__":
 
 
 
-            transy(formatted_date, description, correctAmount, category)
+            transy(formatted_date, correctAmount, category) #removed , 'description'
         elif decision == '2':
             display()
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='expense.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,6 +15,16 @@
             <button class="tab-button active" data-tab="expenses">Expenses</button>
             <button class="tab-button" data-tab="graphs">Graphs</button>
             <button class="tab-button" data-tab="categories">Categories</button>
+        </div>
+
+        <div id="graphs" class="tab-content">
+            <select id = "graphType">
+                <option value ="bar">Bar Chart</option>
+                <option value ="pie">Pie</option>
+                <option value ="line">Line</option>
+            </select>
+            <!-- <button onclick="loadGraphs()">Generate Graph</button> -->
+            <div id = "graphContainer" style="width:100%; height:400px"></div>
         </div>
 
         <div id="expenses" class="tab-content active">
@@ -33,20 +44,20 @@
                 <input type="number" id="expenseAmount" placeholder="Amount" required>
                 <button type="button" onclick="addExpenseFromForm()">Add Expense</button>
             </form>
-
-            <div id="monthSelector">
+            <div id = "monthSelector">
+                <label for ="monthPicker">Select Month:</label>
+                <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+            </div>
+            <!-- <div id="monthSelector">
                 <label for="monthPicker">Select Month:</label>
                 <input type="month" id="monthPicker">
-            </div>
+            </div> -->
 
             <ul id="expenseList"></ul>
             <p id="total"></p>
         </div>
 
-    <div id = "monthSelector">
-        <label for ="monthPicker">Select Month:</label>
-        <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
-    </div>
+   
 
     <ul id="expenseList"></ul>
     <p id="total"></p>
