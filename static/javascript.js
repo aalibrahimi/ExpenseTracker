@@ -57,7 +57,7 @@ function addExpenseFromForm() {
             alert(`Failed to add expense. Error: ${error.message}`);
         });
     } else {
-        alert('Please fill all fields correctly');
+        // alert('Please fill all fields correctly');
     }
 }
 // Function to get expenses for a specific month and year
