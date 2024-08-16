@@ -113,8 +113,8 @@ function loadGraphs() {
     fetch(`http://localhost:5001/spending_by_categories`)
         .then(response => response.json())
         .then(data => {
-            const categories = Object.keys(data);
-            const amounts = Object.values(data);
+            const categories = data.categories; // Changed this line
+            const amounts = data.amounts; // Changed this line
 
             let trace;
             let layout;
@@ -214,21 +214,7 @@ function loadCategories()
         .catch(error => console.error('Error:', error))
 }
 
-// fetch('http://localhost:5001/get_expenses')
-//     .then(response => {
-//         if (!response.ok) {
-//             throw new Error('Network response was not ok');
-//         }
-//         return response.json();
-//     })
-//     .then(expenses => {
-//         // Process expenses
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//         // Display error message to user
-//     });
-// Set default month to current month
+
 const today = new Date();
 document.getElementById('monthPicker').value = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
 updateDisplayedMonth();

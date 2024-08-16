@@ -179,18 +179,51 @@ def get_categories():
     return jsonify(getCategories())
 
 @app.route('/spending_by_categories', methods=['GET'])
+@login_required #Refresh here next time
 def spending_by_categories():
-    categories = spendingByCategories()
-    return jsonify(categories)
+    try:
+        spending_data = db.session.query(
+            Expense.category,
+            db.func.sum(Expense.amount).label('total')
+        ).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
+
+        categories = [item.category for item in spending_data]
+        amounts = [float(item.total) for item in spending_data]
+
+        return jsonify({
+            'categories': categories,
+            'amounts': amounts
+        })
+    except Exception as e:
+        print(f"Error in spending_by_categories: {str(e)}")
+        return jsonify({"error": "An internal server error occurred."}), 500
 
 @app.route('/plot_spending', methods=['GET'])
-def plot_spending():
-    graph_type = request.args.get('type', 'bar')
-    plot_data = plotSpending(graph_type)
-    if plot_data:
-        return jsonify({'plot': plot_data})
-    else:
-        return jsonify({'error': 'No data to plot'}), 400
+def plotSpending(graph_type='bar'):
+    try:
+        # Query to fetch total spending by category from the PostgreSQL database
+        spending_by_category = db.session.query(
+            Expense.category,
+            db.func.sum(Expense.amount).label('total')
+        ).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
+
+        if not spending_by_category:
+            return None
+
+        categories = [record.category for record in spending_by_category]
+        amounts = [float(record.total) for record in spending_by_category]
+
+        # Return the data in the format expected by your graphing library (e.g., Plotly)
+        return {
+            'categories': categories,
+            'amounts': amounts,
+            'graph_type': graph_type
+        }
+    except Exception as e:
+        print(f"Error generating plot data: {str(e)}")
+        return None
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
