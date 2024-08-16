@@ -20,11 +20,7 @@ function addExpenseFromForm() {
 
     if (date && category && !isNaN(amount)) {
         //fomrating the date to mm/dd/yyyy
-        const formattedDate = new Date(date).toLocaleDateString('en-US', {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric'
-        }).replace(/\//g, '-');
+        const formattedDate = new Date(date).toISOString().split('T')[0];
 
         const expenseData = { date: formattedDate, category, amount };
         console.log('Sending expense data:', expenseData);  // Log the data being sent
@@ -91,9 +87,9 @@ function displayMonthlyExpenses(month, year) {
         let total = 0;
         expenses.forEach(expense => {
             const li = document.createElement('li');
-            li.textContent = `${expense.date} - ${expense.category}: $${expense.amount.toFixed(2)}`;
+            li.textContent = `${expense.date} - ${expense.category}: $${parseFloat(expense.amount).toFixed(2)}`;
             expenseList.appendChild(li);
-            total += expense.amount;
+            total += parseFloat(expense.amount);
         });
         
         const totalElement = document.getElementById('total');
