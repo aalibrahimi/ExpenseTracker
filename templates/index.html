@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='expense.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Expense Tracker</h1>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('register') }}">Register</a>
+                <a href="{{ url_for('login') }}">Login</a>
+            {% endif %}
+   
+        <div class="tabs">
+            <button class="tab-button active" data-tab="expenses">Expenses</button>
+            <button class="tab-button" data-tab="graphs">Graphs</button>
+            <button class="tab-button" data-tab="categories">Categories</button>
+        </div>
+
+        <div id="graphs" class="tab-content">
+            <select id = "graphType">
+                <option value ="bar">Bar Chart</option>
+                <option value ="pie">Pie</option>
+                <option value ="line">Line</option>
+            </select>
+            <!-- <button onclick="loadGraphs()">Generate Graph</button> -->
+            <div id = "graphContainer" style="width:100%; height:400px"></div>
+        </div>
+
+        <div id="expenses" class="tab-content active">
+            <form id="expenseForm">
+                <input type="date" id="expenseDate" required>
+                <select id="expenseCategory" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Dining Out">Dining Out</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Clothes">Clothes</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="number" id="expenseAmount" placeholder="Amount" required>
+                <button type="button" onclick="addExpenseFromForm()">Add Expense</button>
+            </form>
+            <div id = "monthSelector">
+                <label for ="monthPicker">Select Month:</label>
+                <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+            </div>
+            <!-- <div id="monthSelector">
+                <label for="monthPicker">Select Month:</label>
+                <input type="month" id="monthPicker">
+            </div> -->
+
+            <ul id="expenseList"></ul>
+            <p id="total"></p>
+        
+        </div>
+
+   
+
+    <ul id="expenseList"></ul>
+    <p id="total"></p>
+
+    <script src="{{ url_for('static', filename='javascript.js') }}"></script>
+</body>
+</html>

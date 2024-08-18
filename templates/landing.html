@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expensy Tracker - Your Financial Companion</title>
+    <link rel="stylesheet" href="./static/landing.css">
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-chart-line"></i> Expensy Tracker
+        </div>
+        <nav>
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#testimonials" class="nav-link">Testimonials</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </nav>
+        <div class="auth-buttons">
+            <a href="/login" class="btn btn-login">Login</a>
+            <a href="/register" class="btn btn-register">Register</a>
+            <a href="/dashboard" class="btn btn-dashboard" style="display: none;">Dashboard</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="animated-text">Master Your Finances with Expensy</h1>
+                <p class="subtitle">Join millions in taking control of their financial future</p>
+                <button class="cta-button">Get Started for Free</button>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-element coin"><i class="fas fa-coins"></i></div>
+                <div class="floating-element chart"><i class="fas fa-chart-bar"></i></div>
+                <div class="floating-element piggy"><i class="fas fa-piggy-bank"></i></div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <h2>Why Choose Expensy Tracker?</h2>
+            <div class="feature-graph">
+                <img src="stylized-finance-graph.jpg" alt="Financial Graph" class="graph-bg">
+                <div class="feature-hotspot" style="top: 20%; left: 30%;">
+                    <div class="hotspot-icon"><i class="fas fa-wallet"></i></div>
+                    <div class="hotspot-content">
+                        <h3>Smart Budgeting</h3>
+                        <p>Set and monitor your budgets with AI-powered insights.</p>
+                    </div>
+                </div>
+                <div class="feature-hotspot" style="top: 60%; left: 70%;">
+                    <div class="hotspot-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="hotspot-content">
+                        <h3>Advanced Analytics</h3>
+                        <p>Visualize your spending patterns with interactive charts.</p>
+                    </div>
+                </div>
+                <div class="feature-hotspot" style="top: 40%; left: 50%;">
+                    <div class="hotspot-icon"><i class="fas fa-bell"></i></div>
+                    <div class="hotspot-content">
+                        <h3>Intelligent Reminders</h3>
+                        <p>Get personalized alerts to avoid overspending.</p>
+                    </div>
+                </div>
+                <div class="feature-hotspot" style="top: 80%; left: 20%;">
+                    <div class="hotspot-icon"><i class="fas fa-sync"></i></div>
+                    <div class="hotspot-content">
+                        <h3>Real-time Sync</h3>
+                        <p>Your data is always up-to-date across all devices.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials" id="testimonials">
+            <h2>What Our Users Say</h2>
+            <div class="testimonial-carousel">
+                <div class="testimonial-card">
+                    <img src="user1.jpg" alt="User 1" class="user-avatar">
+                    <p>"Expensy Tracker changed my financial life. I've never been more in control of my spending!"</p>
+                    <div class="testimonial-author">- Sarah J.</div>
+                    <div class="rating">★★★★★</div>
+                </div>
+                <div class="testimonial-card">
+                    <img src="user2.jpg" alt="User 2" class="user-avatar">
+                    <p>"The insights I get from this app are incredible. It's like having a personal financial advisor."</p>
+                    <div class="testimonial-author">- Mike T.</div>
+                    <div class="rating">★★★★★</div>
+                </div>
+                <div class="testimonial-card">
+                    <img src="user3.jpg" alt="User 3" class="user-avatar">
+                    <p>"I love how easy it is to use. The reminders have saved me from late fees multiple times!"</p>
+                    <div class="testimonial-author">- Emily R.</div>
+                    <div class="rating">★★★★☆</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-wave"></div>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="#about">About Us</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2024 Expensy Tracker. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
