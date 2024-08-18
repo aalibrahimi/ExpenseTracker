@@ -18,7 +18,8 @@ from flask_wtf import FlaskForm
 from flask_migrate import Migrate
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, current_user, logout_user, login_required
+import webbrowser
 from config import SECRET_KEY, SQLALCHEMY_DATABASE_URI
 
 app = Flask(__name__)
@@ -29,7 +30,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 
 
 db = SQLAlchemy(app)
-bycrpyt = Bcrypt(app)
+bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)  # Initialize Flask-Migrate with your app and db
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -42,7 +43,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.Text, nullable=False)
 
     def check_password(self, password):
-        return bycrpyt.check_password_hash(self.password_hash, password)
+        return bcrypt.check_password_hash(self.password_hash, password)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -81,56 +82,65 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 
+
+#-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------------
+#ROUTES-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------------
+# Main routes
+@app.route('/landing')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/index')
+@login_required
+def index():
+    return render_template('index.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('landing'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bycrpyt.generate_password_hash(form.password.data).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, email=form.email.data, password_hash=hashed_password)
         db.session.add(user)
         db.session.commit()
-        flash('Your account has succefully been created! You are now able to log in', 'Success')
+        flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('landing'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('landing'))
         else:
-            flash('login Unsucessful. Pleae Check email and password again', 'danger')
+            flash('Login unsuccessful. Please check email and password.', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('home'))
-
-@app.route('/home')
-def home():
-    return render_template('index.html', title='Home')
-#------------------------------------------above is sql
-
-CORS(app, resources={r"/*": {"origins": "http://localhost:5001"}})
-
-# Load existing transactions when the app starts
-loadInfo()
+    return redirect(url_for('landing'))
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def root():
+    return redirect(url_for('landing'))
 
+@app.route('/check_auth')
+def check_auth():
+    is_authenticated = current_user.is_authenticated
+    return jsonify({'is_authenticated': is_authenticated})
 
+# Expense-related routes
 @app.route('/add_expense', methods=['POST'])
+@login_required
 def add_expense():
     try:
         data = request.json
@@ -143,12 +153,12 @@ def add_expense():
         db.session.commit()
         return jsonify({'message': 'Expense added successfully'}), 201
     except Exception as e:
-        db.session.rollback() #rollback in case of error
+        db.session.rollback()
         print(f"Error in add_expense: {str(e)}")
-        return jsonify({"Error": "An internal error occured."}), 500
-    
+        return jsonify({"error": "An internal error occurred."}), 500
 
 @app.route('/get_expenses', methods=['GET'])
+@login_required
 def get_expenses():
     try:
         month = request.args.get('month', type=int)
@@ -160,14 +170,13 @@ def get_expenses():
             Expense.user_id == current_user.id
         ).all()
 
-        formatted_expenses = []
-        for expense in expenses:
-            formatted_expense = {
+        formatted_expenses = [
+            {
                 'date': expense.date.strftime('%m-%d-%Y'),
                 'category': expense.category,
                 'amount': float(expense.amount)
-            }
-            formatted_expenses.append(formatted_expense)
+            } for expense in expenses
+        ]
 
         return jsonify(formatted_expenses)
     except Exception as e:
@@ -179,7 +188,7 @@ def get_categories():
     return jsonify(getCategories())
 
 @app.route('/spending_by_categories', methods=['GET'])
-@login_required #Refresh here next time
+@login_required
 def spending_by_categories():
     try:
         spending_data = db.session.query(
@@ -199,31 +208,30 @@ def spending_by_categories():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 @app.route('/plot_spending', methods=['GET'])
-def plotSpending(graph_type='bar'):
+@login_required
+def plot_spending():
     try:
-        # Query to fetch total spending by category from the PostgreSQL database
         spending_by_category = db.session.query(
             Expense.category,
             db.func.sum(Expense.amount).label('total')
         ).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
 
         if not spending_by_category:
-            return None
+            return jsonify({"error": "No spending data available"}), 404
 
         categories = [record.category for record in spending_by_category]
         amounts = [float(record.total) for record in spending_by_category]
 
-        # Return the data in the format expected by your graphing library (e.g., Plotly)
-        return {
+        return jsonify({
             'categories': categories,
             'amounts': amounts,
-            'graph_type': graph_type
-        }
+            'graph_type': request.args.get('graph_type', 'bar')
+        })
     except Exception as e:
         print(f"Error generating plot data: {str(e)}")
-        return None
-
-
+        return jsonify({"error": "An internal server error occurred."}), 500
 
 if __name__ == '__main__':
+    url = "http://localhost:5001"
+    webbrowser.open(url)
     app.run(debug=True, port=5001)
