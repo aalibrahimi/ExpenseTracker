@@ -282,6 +282,30 @@ function fetchData() {
         //     alert('Failed to fetch expenses. Please try again.');
         // });
 }
+// Dark mode toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const darkModeToggle = document.getElementById('toggle-dark-mode');
+    const body = document.body;
+
+    // Check if dark mode preference is stored in localStorage
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        body.classList.add('dark-mode');
+    }
+
+    darkModeToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        body.classList.toggle('dark-mode');
+
+        // Store the preference in localStorage
+        if (body.classList.contains('dark-mode')) {
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    });
+});
+
+
 
 // Only fetch data if the user is authenticated
 document.addEventListener('DOMContentLoaded', function () {
@@ -291,7 +315,48 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('User is not authenticated; waiting for login.');
     }
 });
+//--------------------------------//-------------------------
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
 
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            // Perform login AJAX request here
+            console.log('Login form submitted', email, password);
+        });
+    }
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            // Perform registration AJAX request here
+            console.log('Register form submitted', email, password);
+        });
+    }
+});
+
+function toggleForm() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    if (loginForm.style.display === 'none') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+    }
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+console.log('Form submitted');
+});
+//-------
 // Automatically sets the month picker to the current month and year.
 const today = new Date();
 document.getElementById('monthPicker').value = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`; // Formats the date to "YYYY-MM".
