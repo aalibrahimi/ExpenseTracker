@@ -1,3 +1,0 @@
-create data base
-add a way to track credit cards automatically
-create a log in page
