@@ -281,3 +281,8 @@ main {
       align-items: stretch;
   }
 }
+
+::selection {
+  background-color: #319795;
+  color: white;
+}

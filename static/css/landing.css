@@ -585,3 +585,18 @@ footer {
 .cube-controls button:hover {
     background-color: var(--accent-color);
 }
+::selection {
+    background-color: var(--primary-color);
+    color: rgb(255, 255, 255);
+  }
+  /* Style the scrollbar track */
+::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+    height: 12px; /* Height of the scrollbar */
+  }
+  
+  /* Style the scrollbar thumb */
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color); /* Scrollbar thumb color */
+    border-radius: 6px; /* Make it round */
+  }

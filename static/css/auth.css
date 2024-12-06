@@ -208,3 +208,7 @@ body, html {
 .toggle-form a:hover {
     text-decoration: underline;
 }
+::selection {
+    background-color: #319795;
+    color: white;
+  }
