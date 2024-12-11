@@ -1,7 +1,7 @@
 :root {
-    --primary: #3498db;
-    --secondary: #e74c3c;
-    --accent: #f39c12;
+    --primary: #263c4b;
+    --secondary: #57f4d5;
+    --accent: #282727;
     --background: #ecf0f1;
     --text: #34495e;
     --light-text: #ffffff;
@@ -26,7 +26,7 @@ body, html {
 }
 
 .auth-sidebar {
-    width: 40%;
+    width: 30%;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     flex-direction: column;
@@ -184,7 +184,7 @@ body, html {
 }
 
 .btn-secondary:hover {
-    background-color: #e67e22;
+    background-color: #0041b9;
 }
 
 /* You may need to adjust some existing styles */
