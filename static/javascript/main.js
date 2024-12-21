@@ -1,34 +1,52 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard JavaScript loaded');
 
-    const expenses = [];
-
-    function addExpense(date, category, amount) {
-        expenses.push({ date: new Date(date), category, amount });
-    }
+    // Store active tab ID
+    let activeTabId = 'expenses';
 
     function updateDisplayedMonth() {
+        console.log('Updating displayed month');
         const monthPicker = document.getElementById('monthPicker');
+        if (!monthPicker) {
+            console.log('Month picker not found');
+            return;
+        }
+        
         const [year, month] = monthPicker.value.split('-');
         displayMonthlyExpenses(parseInt(month) - 1, parseInt(year));
     }
 
     function addExpenseFromForm() {
-        const date = document.getElementById('expenseDate').value;
-        const category = document.getElementById('expenseCategory').value;
-        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        console.log('Add expense function called');
+    const date = document.getElementById('expenseDate').value;
+    const category = document.getElementById('expenseCategory').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
 
+    console.log('Form values:', { date, category, amount });
         if (date && category && !isNaN(amount)) {
             const formattedDate = new Date(date).toISOString().split('T')[0];
-            const expenseData = { date: formattedDate, category, amount };
-            console.log('Sending expense data:', expenseData);
+            const formData = new FormData();
+            formData.append('date', formattedDate);
+            formData.append('category', category);
+            formData.append('amount', amount);
 
-            fetch('http://localhost:5001/add_expense', {
+            // Get CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            if (!csrftoken) {
+                console.error('CSRF token not found!');
+                return;
+            }
+
+            fetch('/add-expense/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(expenseData),
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                body: formData,
+                credentials: 'include'
             })
             .then(response => {
+                console.log('Response received:', response.status);
                 if (!response.ok) {
                     return response.json().then(errorData => {
                         throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
@@ -39,16 +57,23 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 console.log('Success:', data);
                 updateDisplayedMonth();
+                // Clear form
                 document.getElementById('expenseDate').value = '';
                 document.getElementById('expenseCategory').value = '';
                 document.getElementById('expenseAmount').value = '';
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add expense. Please try again.');
+            });
+        } else {
+            alert('Please fill in all fields correctly.');
         }
     }
 
     function displayMonthlyExpenses(month, year) {
-        fetch(`http://localhost:5001/get_expenses?month=${month + 1}&year=${year}`)
+        console.log('Fetching expenses for:', { month: month + 1, year });
+        fetch(`/get-expenses/?month=${month + 1}&year=${year}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,7 +81,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(expenses => {
+            console.log('Received expenses:', expenses);
             const expenseList = document.getElementById('expenseList');
+            if (!expenseList) return;
+            
             expenseList.innerHTML = '';
             
             let total = 0;
@@ -67,52 +95,74 @@ document.addEventListener('DOMContentLoaded', function() {
                 total += parseFloat(expense.amount);
             });
             
-            const totalElement = document.getElementById('total');
-            totalElement.textContent = `Total: $${total.toFixed(2)}`;
+            // Update all total displays
+            const totalElements = {
+                total: document.getElementById('total'),
+                monthlyTotal: document.getElementById('monthlyTotal'),
+                expenseCount: document.getElementById('expenseCount')
+            };
+
+            if (totalElements.total) {
+                totalElements.total.textContent = `Total: $${total.toFixed(2)}`;
+            }
+            if (totalElements.monthlyTotal) {
+                totalElements.monthlyTotal.textContent = `$${total.toFixed(2)}`;
+            }
+            if (totalElements.expenseCount) {
+                totalElements.expenseCount.textContent = expenses.length;
+            }
         })
         .catch(error => console.error('Error:', error));
     }
 
     function loadGraphs() {
-        const graphType = document.getElementById('graphType').value;
-        fetch(`http://localhost:5001/spending_by_categories`)
+        console.log('Loading graphs...');
+        const graphType = document.getElementById('graphType')?.value || 'bar';
+        fetch('/spending-by-categories/')
             .then(response => response.json())
             .then(data => {
-                const categories = data.categories;
-                const amounts = data.amounts;
-
-                let trace, layout;
-
-                switch(graphType) {
-                    case 'bar':
-                        trace = { x: categories, y: amounts, type: 'bar' };
-                        layout = {
-                            title: 'Spending by Category',
-                            xaxis: { title: 'Category' },
-                            yaxis: { title: 'Amount ($)' }
-                        };
-                        break;
-                    case 'pie':
-                        trace = { labels: categories, values: amounts, type: 'pie' };
-                        layout = { title: 'Spending by Category' };
-                        break;
-                    case 'line':
-                        trace = { x: categories, y: amounts, type: 'scatter', mode: 'lines+markers' };
-                        layout = {
-                            title: 'Spending by Category',
-                            xaxis: { title: 'Category' },
-                            yaxis: { title: 'Amount ($)' }
-                        };
-                        break;
+                console.log('Graph data:', data);
+                if (!data.categories || !data.amounts) {
+                    console.log('No data available for graphs');
+                    return;
                 }
 
-                const config = { scrollZoom: true };
-                Plotly.newPlot('graphContainer', [trace], layout, config);
+                const trace = {
+                    x: data.categories,
+                    y: data.amounts,
+                    type: graphType === 'pie' ? 'pie' : graphType === 'line' ? 'scatter' : 'bar',
+                    mode: graphType === 'line' ? 'lines+markers' : undefined,
+                    labels: graphType === 'pie' ? data.categories : undefined,
+                    values: graphType === 'pie' ? data.amounts : undefined
+                };
+
+                const layout = {
+                    title: 'Spending by Category',
+                    xaxis: graphType !== 'pie' ? { title: 'Category' } : undefined,
+                    yaxis: graphType !== 'pie' ? { title: 'Amount ($)' } : undefined,
+                    height: 400,
+                    margin: { t: 50, b: 50, l: 50, r: 50 }
+                };
+
+                const config = { responsive: true };
+                const graphContainer = document.getElementById('graphContainer');
+                if (graphContainer) {
+                    Plotly.newPlot('graphContainer', [trace], layout, config);
+                    
+                    // Update top category in stats
+                    const topCategory = document.getElementById('topCategory');
+                    if (topCategory && data.categories.length > 0) {
+                        topCategory.textContent = data.categories[0];
+                    }
+                }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => console.error('Error loading graphs:', error));
     }
 
     function switchTab(tabId) {
+        console.log('Switching to tab:', tabId);
+        
+        // Hide all tab contents and deactivate all buttons
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
         });
@@ -120,81 +170,78 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.tab-button').forEach(button => {
             button.classList.remove('active');
         });
-
-        const tabContent = document.getElementById(tabId);
-        if (tabContent) {
-            tabContent.classList.add('active');
+    
+        // Show selected tab and activate its button
+        const selectedTab = document.getElementById(tabId);
+        const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+        
+        if (selectedTab) {
+            selectedTab.classList.add('active');
         }
-
-        const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
-        if (tabButton) {
-            tabButton.classList.add('active');
+        if (selectedButton) {
+            selectedButton.classList.add('active');
         }
-
+    
+        // Load tab-specific content
         if (tabId === 'expenses') {
             updateDisplayedMonth();
         } else if (tabId === 'graphs') {
             loadGraphs();
-        } else if (tabId === 'categories') {
-            loadCategories();
         }
     }
-
-    function loadCategories() {
-        fetch('http://localhost:5001/get_categories')
-            .then(response => response.json())
-            .then(categories => {
-                const categoryList = document.getElementById('categories');
-                categoryList.innerHTML = '<h2>Categories</h2>' +
-                    categories.map(category => `<li>${category}</li>`).join('') +
-                    '</ul>';
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function fetchData() {
-        fetch('/get_expenses?month=8&year=2024')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch expenses');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Expenses fetched:', data);
-                // Handle the fetched data (e.g., display it on the page)
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    // Event Listeners
+    
+    // Update form submission handling
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addExpenseFromForm();
+    });
+    
+    // Make sure tab buttons are properly set up
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.getAttribute('data-tab');
+            console.log('Tab clicked:', tabId);
             switchTab(tabId);
         });
     });
 
-    document.getElementById('graphType').addEventListener('change', loadGraphs);
+    // Set up event listeners
+    function initializeEventListeners() {
+        console.log('Initializing event listeners...');
 
-    const monthPicker = document.getElementById('monthPicker');
-    if (monthPicker) {
-        const today = new Date();
-        monthPicker.value = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
-        monthPicker.addEventListener('change', updateDisplayedMonth);
+        // Tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tabId = e.target.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        // Month picker
+        const monthPicker = document.getElementById('monthPicker');
+        if (monthPicker) {
+            const today = new Date();
+            monthPicker.value = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+            monthPicker.addEventListener('change', updateDisplayedMonth);
+        }
+
+        // Add expense button
+        const addExpenseButton = document.getElementById('addExpenseButton');
+        if (addExpenseButton) {
+            addExpenseButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                addExpenseFromForm();
+            });
+        }
+
+        // Graph type selector
+        const graphTypeSelect = document.getElementById('graphType');
+        if (graphTypeSelect) {
+            graphTypeSelect.addEventListener('change', loadGraphs);
+        }
     }
 
-    const addExpenseButton = document.querySelector('button');
-    if (addExpenseButton) {
-        addExpenseButton.addEventListener('click', addExpenseFromForm);
-    }
-
-    // Initial load
-    if (isAuthenticated()) {
-        fetchData();
-    } else {
-        console.log('User is not authenticated; waiting for login.');
-    }
-
-    updateDisplayedMonth();
+    // Initialize everything
+    initializeEventListeners();
+    switchTab('expenses'); // Start with expenses tab
 });

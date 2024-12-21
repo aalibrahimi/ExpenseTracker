@@ -1,10 +1,12 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/expense.css') }}">
+    <link rel="stylesheet" href="{% static 'css/expense.css' %}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
@@ -13,11 +15,11 @@
             <div class="header-top">
                 <h1>Expense Tracker</h1>
                 <div class="auth-links">
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('logout') }}">Logout</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'logout' %}">Logout</a>
                     {% else %}
-                        <a href="{{ url_for('register') }}">Register</a>
-                        <a href="{{ url_for('login') }}">Login</a>
+                        <a href="{% url 'register' %}">Register</a>
+                        <a href="{% url 'login' %}">Login</a>
                     {% endif %}
                 </div>
             </div>
@@ -46,26 +48,29 @@
 
         <main>
             <div id="expenses" class="tab-content active">
-                <form id="expenseForm" class="expense-form">
-                    <input type="date" id="expenseDate" required>
-                    <select id="expenseCategory" required>
-                        <option value="" disabled selected>Select Category</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Dining Out">Dining Out</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Clothes">Clothes</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <input type="number" id="expenseAmount" placeholder="Amount" required>
-                    <button type="button" onclick="addExpenseFromForm()" class="add-expense-btn">Add Expense</button>
+                <form id="expenseForm" class="expense-form" method="POST">
+                    {% csrf_token %}
+                    <div class="form-inputs">
+                        <input type="date" id="expenseDate" name="date" required>
+                        <select id="expenseCategory" name="category" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Rent">Rent</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Dining Out">Dining Out</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Clothes">Clothes</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="number" id="expenseAmount" name="amount" placeholder="Amount" step="0.01" required>
+                        <button type="submit" id="addExpenseButton" class="add-expense-btn">Add Expense</button>
+                    </div>
                 </form>
 
                 <div id="monthSelector" class="month-selector">
                     <label for="monthPicker">Select Month:</label>
-                    <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+                    <input type="month" id="monthPicker">
                 </div>
 
                 <div class="expense-list-container">
@@ -82,14 +87,20 @@
                 </select>
                 <div id="graphContainer" class="graph-container"></div>
             </div>
+
+            <div id="categories" class="tab-content">
+                <div class="categories-list">
+                    <!-- Categories will be populated by JavaScript -->
+                </div>
+            </div>
         </main>
 
         <footer class="footer">
-            <a href="{{ url_for('landing') }}" class="btn btn-secondary">Home</a>
+            <a href="{% url 'landing' %}" class="btn btn-secondary">Home</a>
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='javascript/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='javascript/main.js') }}"></script>
+    <script src="{% static 'javascript/main.js' %}"></script>
+    <script src="{% static 'javascript/common.js' %}"></script>
 </body>
 </html>
