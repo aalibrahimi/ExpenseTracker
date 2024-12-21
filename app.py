@@ -21,21 +21,19 @@ from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from flask_login import login_user, current_user, logout_user, login_required
 import webbrowser
 from config import SECRET_KEY, SQLALCHEMY_DATABASE_URI
+# from signUp import loginForm, RegistrationForm
 
 app = Flask(__name__)
 
-#config.py
 app.config['SECRET_KEY'] = SECRET_KEY 
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 
-
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate with your app and db
+migrate = Migrate(app, db)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'signUp'
 
-#First class is handling login through Sql
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -49,14 +47,12 @@ class User(db.Model, UserMixin):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-#second Class is handling data tracking expense information
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)  # This is correct
+    date = db.Column(db.Date, nullable=False)
     category = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
-
 
 # database for storing login and expenses now we have to create the registration and login functions
 class RegistrationForm(FlaskForm):
@@ -75,18 +71,15 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('That email is already in use. Please Enter a different email')
-
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
+@app.route('/')
+def root():
+    return redirect(url_for('landing'))
 
-
-#-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------------
-#ROUTES-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------//--------------------------------------------------------------------------------------------------------------------
-# Main routes
 @app.route('/landing')
 def landing():
     return render_template('landing.html')
@@ -95,42 +88,42 @@ def landing():
 @login_required
 def index():
     return render_template('index.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('landing'))
+    login_form = LoginForm()
+    register_form = RegistrationForm()
+    if login_form.validate_on_submit():
+        user = User.query.filter_by(email=login_form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password_hash, login_form.password.data):
+            login_user(user)
+            # flash('Login successful', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Login failed. Check your email and password', 'danger')
+    return render_template('signUp.html', title='Login', login_form=login_form, register_form=register_form, show_registration=False)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('landing'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password_hash=hashed_password)
+    login_form = LoginForm()
+    register_form = RegistrationForm()
+    if register_form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(register_form.password.data).decode('utf-8')
+        user = User(username=register_form.username.data, email=register_form.email.data, password_hash=hashed_password)
         db.session.add(user)
         db.session.commit()
-        flash('Your account has been created! You can now log in.', 'success')
+        # flash('Your account has been created! You are now able to log in', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('signUp.html', title='Register', login_form=login_form, register_form=register_form, show_registration=True)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('landing'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            return redirect(url_for('landing'))
-        else:
-            flash('Login unsuccessful. Please check email and password.', 'danger')
-    return render_template('login.html', title='Login', form=form)
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('landing'))
-
-@app.route('/')
-def root():
     return redirect(url_for('landing'))
 
 @app.route('/check_auth')
@@ -138,7 +131,11 @@ def check_auth():
     is_authenticated = current_user.is_authenticated
     return jsonify({'is_authenticated': is_authenticated})
 
-# Expense-related routes
+# @login_manager.unauthorized_handler
+# def unauthorized():
+#     flash('You must be logged in to view this page.', 'warning')
+#     return redirect(url_for('auth'))
+
 @app.route('/add_expense', methods=['POST'])
 @login_required
 def add_expense():

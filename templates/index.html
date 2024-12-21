@@ -4,72 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='expense.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/expense.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
 </head>
 <body>
     <div class="container">
-        <h1>Expense Tracker</h1>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for('register') }}">Register</a>
-                <a href="{{ url_for('login') }}">Login</a>
-            {% endif %}
-   
-        <div class="tabs">
+        <header class="header">
+            <div class="header-top">
+                <h1>Expense Tracker</h1>
+                <div class="auth-links">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}">Register</a>
+                        <a href="{{ url_for('login') }}">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Spend</div>
+                    <div class="stat-value" id="monthlyTotal">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Most Spent On</div>
+                    <div class="stat-value" id="topCategory">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Expenses</div>
+                    <div class="stat-value" id="expenseCount">0</div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tabs">
             <button class="tab-button active" data-tab="expenses">Expenses</button>
             <button class="tab-button" data-tab="graphs">Graphs</button>
             <button class="tab-button" data-tab="categories">Categories</button>
-        </div>
+        </nav>
 
-        <div id="graphs" class="tab-content">
-            <select id = "graphType">
-                <option value ="bar">Bar Chart</option>
-                <option value ="pie">Pie</option>
-                <option value ="line">Line</option>
-            </select>
-            <!-- <button onclick="loadGraphs()">Generate Graph</button> -->
-            <div id = "graphContainer" style="width:100%; height:400px"></div>
-        </div>
+        <main>
+            <div id="expenses" class="tab-content active">
+                <form id="expenseForm" class="expense-form">
+                    <input type="date" id="expenseDate" required>
+                    <select id="expenseCategory" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Rent">Rent</option>
+                        <option value="Insurance">Insurance</option>
+                        <option value="Dining Out">Dining Out</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Clothes">Clothes</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="number" id="expenseAmount" placeholder="Amount" required>
+                    <button type="button" onclick="addExpenseFromForm()" class="add-expense-btn">Add Expense</button>
+                </form>
 
-        <div id="expenses" class="tab-content active">
-            <form id="expenseForm">
-                <input type="date" id="expenseDate" required>
-                <select id="expenseCategory" required>
-                    <option value="" disabled selected>Select Category</option>
-                    <option value="Groceries">Groceries</option>
-                    <option value="Rent">Rent</option>
-                    <option value="Insurance">Insurance</option>
-                    <option value="Dining Out">Dining Out</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Clothes">Clothes</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="number" id="expenseAmount" placeholder="Amount" required>
-                <button type="button" onclick="addExpenseFromForm()">Add Expense</button>
-            </form>
-            <div id = "monthSelector">
-                <label for ="monthPicker">Select Month:</label>
-                <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+                <div id="monthSelector" class="month-selector">
+                    <label for="monthPicker">Select Month:</label>
+                    <input type="month" id="monthPicker" onchange="updateDisplayedMonth()">
+                </div>
+
+                <div class="expense-list-container">
+                    <ul id="expenseList"></ul>
+                    <p id="total" class="total-amount"></p>
+                </div>
             </div>
-            <!-- <div id="monthSelector">
-                <label for="monthPicker">Select Month:</label>
-                <input type="month" id="monthPicker">
-            </div> -->
 
-            <ul id="expenseList"></ul>
-            <p id="total"></p>
-        
-        </div>
+            <div id="graphs" class="tab-content">
+                <select id="graphType" class="graph-select">
+                    <option value="bar">Bar Chart</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="line">Line Chart</option>
+                </select>
+                <div id="graphContainer" class="graph-container"></div>
+            </div>
+        </main>
 
-   
+        <footer class="footer">
+            <a href="{{ url_for('landing') }}" class="btn btn-secondary">Home</a>
+        </footer>
+    </div>
 
-    <ul id="expenseList"></ul>
-    <p id="total"></p>
-
-    <script src="{{ url_for('static', filename='javascript.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/main.js') }}"></script>
 </body>
 </html>
