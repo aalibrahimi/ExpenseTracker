@@ -22,11 +22,11 @@ def index(request):
 
 
 def login_view(request):
-    # Simplified login view since Clerk will handle authentication
+    if request.user.is_authenticated:
+        return redirect('index')
     return render(request, "ExpenseTracker/login.html", {
         'clerk_publishable_key': "pk_test_cmFwaWQtbWFybW90LTEzLmNsZXJrLmFjY291bnRzLmRldiQ"
     })
-
 
 # def register_view(request):
 #     if request.user.is_authenticated:
