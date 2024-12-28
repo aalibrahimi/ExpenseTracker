@@ -20,71 +20,50 @@ def landing(request):
 def index(request):
     return render(request, "ExpenseTracker/index.html")
 
+
 def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('index')
-        
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
-            # First try to get the user by email
-            try:
-                user = User.objects.get(email=email)
-                # Then authenticate with the username
-                user = authenticate(request, username=user.username, password=password)
-                if user is not None:
-                    login(request, user)
-                    return redirect('index')
-                else:
-                    messages.error(request, "Invalid email or password.")
-            except User.DoesNotExist:
-                messages.error(request, "No user found with this email.")
-    else:
-        form = LoginForm()
-    
+    # Simplified login view since Clerk will handle authentication
     return render(request, "ExpenseTracker/login.html", {
-        "form": form,
-        "show_registration": False
+        'clerk_publishable_key': "pk_test_cmFwaWQtbWFybW90LTEzLmNsZXJrLmFjY291bnRzLmRldiQ"
     })
 
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect("index")
+
+# def register_view(request):
+#     if request.user.is_authenticated:
+#         return redirect("index")
     
-    if request.method == "POST":
-        register_form = RegistrationForm(request.POST)
-        if register_form.is_valid():
-            username = register_form.cleaned_data["username"]
-            email = register_form.cleaned_data["email"]
-            password = register_form.cleaned_data["password"]
+#     if request.method == "POST":
+#         register_form = RegistrationForm(request.POST)
+#         if register_form.is_valid():
+#             username = register_form.cleaned_data["username"]
+#             email = register_form.cleaned_data["email"]
+#             password = register_form.cleaned_data["password"]
             
-            try:
-                # Create the user
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password
-                )
-                # Log the user in after registration
-                login(request, user)
-                messages.success(request, "Registration successful! Welcome!")
-                return redirect("index")  # Redirect to index instead of login
-            except Exception as e:
-                messages.error(request, f"Registration failed: {str(e)}")
-    else:
-        register_form = RegistrationForm()
+#             try:
+#                 # Create the user
+#                 user = User.objects.create_user(
+#                     username=username,
+#                     email=email,
+#                     password=password
+#                 )
+#                 # Log the user in after registration
+#                 login(request, user)
+#                 messages.success(request, "Registration successful! Welcome!")
+#                 return redirect("index")  # Redirect to index instead of login
+#             except Exception as e:
+#                 messages.error(request, f"Registration failed: {str(e)}")
+#     else:
+#         register_form = RegistrationForm()
     
-    return render(request, "ExpenseTracker/login.html", {
-        "register_form": register_form,
-        "show_registration": True
-    })
+#     return render(request, "ExpenseTracker/login.html", {
+#         "register_form": register_form,
+#         "show_registration": True
+#     })
 
-def logout_view(request):
-    logout(request)
-    messages.info(request, "You have been logged out.")
-    return redirect("landing")
+# def logout_view(request):
+#     logout(request)
+#     messages.info(request, "You have been logged out.")
+#     return redirect("landing")
 
 @login_required
 def add_expense(request):

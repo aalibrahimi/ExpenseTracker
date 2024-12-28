@@ -32,6 +32,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'your_app.middleware.ClerkAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -111,3 +112,6 @@ if DEBUG:
     print(f"Base Directory: {BASE_DIR}")
     print(f"Static Directories: {STATICFILES_DIRS}")
     print(f"Python Path: {sys.path}")
+
+# KEY
+CLERK_PUBLISHABLE_KEY = "pk_test_cmFwaWQtbWFybW90LTEzLmNsZXJrLmFjY291bnRzLmRldiQ"
