@@ -8,14 +8,8 @@
     <title>Expense Tracker</title>
     <link rel="stylesheet" href="{% static 'css/expense.css' %}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://clerk.browser.accounts.dev/loader.js"></script>
 </head>
 <body>
-    <div id="auth-container">
-        <div id="sign-in"></div>
-        <div id="user-button"></div>
-    </div>
-
     <div class="container">
         <header class="header">
             <div class="header-top">
@@ -23,9 +17,6 @@
                 <div class="auth-links">
                     {% if user.is_authenticated %}
                         <a href="{% url 'logout' %}">Logout</a>
-                    {% else %}
-                        <a href="{% url 'register' %}">Register</a>
-                        <a href="{% url 'login' %}">Login</a>
                     {% endif %}
                 </div>
             </div>
@@ -108,34 +99,5 @@
 
     <script src="{% static 'javascript/main.js' %}"></script>
     <script src="{% static 'javascript/common.js' %}"></script>
-    <script>
-        const publishableKey = "pk_test_cmFwaWQtbWFybW90LTEzLmNsZXJrLmFjY291bnRzLmRldiQ";
-        
-        window.addEventListener('load', async function() {
-            const Clerk = window.Clerk;
-            await Clerk.load({
-                publishableKey: publishableKey
-            });
-
-            if (Clerk.user) {
-                // User is signed in
-                const userButtonDiv = document.getElementById('user-button');
-                Clerk.mountUserButton(userButtonDiv);
-                // Redirect to dashboard
-                window.location.href = "{% url 'index' %}";
-            } else {
-                // User is signed out
-                const signInDiv = document.getElementById('sign-in');
-                Clerk.mountSignIn(signInDiv);
-            }
-
-            // Listen for authentication changes
-            Clerk.addListener(({ user }) => {
-                if (user) {
-                    window.location.href = "{% url 'index' %}";
-                }
-            });
-        });
-    </script>
 </body>
 </html>

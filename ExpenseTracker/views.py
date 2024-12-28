@@ -27,6 +27,9 @@ def login_view(request):
     return render(request, "ExpenseTracker/login.html", {
         'clerk_publishable_key': "pk_test_cmFwaWQtbWFybW90LTEzLmNsZXJrLmFjY291bnRzLmRldiQ"
     })
+def logout_view(request):
+    # Since Clerk handles the actual logout, we just redirect
+    return redirect("landing")
 
 # def register_view(request):
 #     if request.user.is_authenticated:

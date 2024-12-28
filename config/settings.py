@@ -32,7 +32,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'your_app.middleware.ClerkAuthMiddleware',
+    'ExpenseTracker.middleware.ClerkAuthMiddleware',  # Update this line
 ]
 
 ROOT_URLCONF = 'config.urls'

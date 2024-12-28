@@ -22,24 +22,28 @@ body, html {
 
 .container {
     display: flex;
-    height: 100%;
+    min-height: 100vh;
 }
 
+/* Sidebar styles */
 .auth-sidebar {
-    width: 30%;
+    width: 40%;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
+    padding: 3rem;
     position: relative;
     overflow: hidden;
 }
 
+/* Main content area */
 .auth-main {
     width: 60%;
+    padding: 2rem;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     background-color: var(--background);
@@ -48,82 +52,84 @@ body, html {
 .welcome-text {
     color: var(--light-text);
     text-align: center;
+    position: relative;
     z-index: 1;
 }
 
 .welcome-text h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    font-weight: 700;
 }
 
 .welcome-text p {
     font-size: 1.1rem;
+    opacity: 0.9;
     margin-bottom: 2rem;
 }
 
-.auth-form {
+/* Clerk auth container */
+#clerk-auth {
+    width: 100%;
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
     background: #ffffff;
-    padding: 3rem;
     border-radius: 10px;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
-    width: 400px;
 }
 
-.auth-form h2 {
-    margin-bottom: 2rem;
-    color: var(--primary);
+/* Alert messages */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 400px;
     text-align: center;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+.alert-error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text);
+.alert-success {
+    background-color: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
 }
 
-.form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: border-color 0.3s ease;
-}
-
-.form-group input:focus {
-    border-color: var(--accent);
-    outline: none;
+/* Buttons and actions */
+.auth-actions {
+    margin-top: 2rem;
+    text-align: center;
 }
 
 .btn {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-    background-color: #2980b9;
-}
-
-.toggle-form {
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.toggle-form a {
-    color: var(--primary);
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
     text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border: none;
     cursor: pointer;
 }
 
+.btn-secondary {
+    background-color: var(--accent);
+    color: var(--light-text);
+    width: auto;
+}
+
+.btn-secondary:hover {
+    background-color: #0041b9;
+    transform: translateY(-1px);
+}
+
+/* Animated background shapes */
 .background-animation {
     position: absolute;
     top: 0;
@@ -164,49 +170,66 @@ body, html {
         transform: translateY(50px) rotate(180deg);
     }
 }
-.form-actions {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+
+/* Selection style */
+::selection {
+    background-color: #319795;
+    color: white;
 }
 
-.toggle-form {
-    margin-bottom: 1rem;
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .auth-sidebar {
+        width: 100%;
+        padding: 2rem;
+        min-height: 200px;
+    }
+
+    .auth-main {
+        width: 100%;
+        padding: 2rem 1rem;
+    }
+
+    .welcome-text h1 {
+        font-size: 2rem;
+    }
+
+    .welcome-text p {
+        font-size: 1rem;
+    }
+
+    #clerk-auth {
+        padding: 1.5rem;
+    }
+
+    .shape-1, .shape-2 {
+        display: none;
+    }
 }
 
-.btn-secondary {
-    background-color: var(--accent);
-    color: var(--light-text);
-    text-decoration: none;
-    text-align: center;
-    display: inline-block;
+/* Clerk UI Customization */
+.cl-component {
+    --cl-background: white;
+    --cl-primary: var(--primary);
+    --cl-primary-hover: var(--secondary);
+    --cl-border-radius: 6px;
 }
 
-.btn-secondary:hover {
-    background-color: #0041b9;
-}
-
-/* You may need to adjust some existing styles */
-
-.btn {
+.cl-form-group input {
     width: 100%;
     padding: 0.75rem;
-    border: none;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-size: 1rem;
+    transition: border-color 0.3s ease;
 }
 
-.toggle-form a {
-    color: var(--primary);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.toggle-form a:hover {
-    text-decoration: underline;
+.cl-form-group input:focus {
+    border-color: var(--accent);
+    outline: none;
 }
 ::selection {
     background-color: #319795;
