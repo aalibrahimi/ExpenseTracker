@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Expense Tracker</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <script src="https://clerk.browser.accounts.dev/loader.js"></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="auth-sidebar">
+            <div class="background-animation">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+            </div>
+            <div class="welcome-text">
+                <h1>Welcome to Expense Tracker</h1>
+                <p>Track your expenses easily and securely.</p>
+            </div>
+        </aside>
+
+        <main class="auth-main">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            <div id="clerk-auth">
+                <!-- Clerk will mount the authentication UI here -->
+                <div id="sign-in"></div>
+                <div id="sign-up"></div>
+            </div>
+
+            <div class="auth-actions">
+                <a href="{% url 'landing' %}" class="btn btn-secondary">Back to Home</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('load', async function() {
+            const publishableKey = "{{ clerk_publishable_key }}";
+            
+            try {
+                const Clerk = window.Clerk;
+                
+                // Initialize Clerk
+                await Clerk.load({
+                    publishableKey: publishableKey,
+                    appearance: {
+                        elements: {
+                            rootBox: {
+                                boxShadow: 'none',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px'
+                            }
+                        }
+                    }
+                });
+
+                // Check authentication status
+                if (Clerk.user) {
+                    // User is already signed in, redirect to dashboard
+                    window.location.href = "{% url 'index' %}";
+                } else {
+                    // Mount sign-in and sign-up components
+                    const signInDiv = document.getElementById('sign-in');
+                    const signUpDiv = document.getElementById('sign-up');
+                    
+                    if (signInDiv) {
+                        Clerk.mountSignIn(signInDiv);
+                    }
+                    if (signUpDiv) {
+                        Clerk.mountSignUp(signUpDiv);
+                    }
+                }
+
+                // Listen for authentication changes
+                Clerk.addListener(({ user }) => {
+                    if (user) {
+                        // User signed in, redirect to dashboard
+                        window.location.href = "{% url 'index' %}";
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error initializing Clerk:', error);
+                // Show a user-friendly error message
+                const authDiv = document.getElementById('clerk-auth');
+                if (authDiv) {
+                    authDiv.innerHTML = '<div class="alert alert-error">Authentication system is temporarily unavailable. Please try again later.</div>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

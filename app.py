@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
 from flask_cors import CORS
 from datetime import datetime
@@ -186,23 +187,35 @@ def get_categories():
 
 @app.route('/spending_by_categories', methods=['GET'])
 @login_required
-def spending_by_categories():
+def spending_by_categories(request):
     try:
-        spending_data = db.session.query(
-            Expense.category,
-            db.func.sum(Expense.amount).label('total')
-        ).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
-
-        categories = [item.category for item in spending_data]
-        amounts = [float(item.total) for item in spending_data]
-
-        return jsonify({
-            'categories': categories,
-            'amounts': amounts
+        print("Starting spending_by_categories view") # Debug print
+        print(f"User: {request.user}")  # Debug print
+        
+        spending_data = Expense.objects.filter(user=request.user)
+        print(f"Found {spending_data.count()} expenses") # Debug print
+        
+        spending_data = spending_data.values("category").annotate(
+            total=Sum("amount")
+        ).order_by('-total')
+        
+        print("Aggregated spending data:", spending_data) # Debug print
+        
+        categories = [data["category"] for data in spending_data]
+        amounts = [float(data["total"]) for data in spending_data]
+        
+        print("Categories:", categories)  # Debug print
+        print("Amounts:", amounts)        # Debug print
+        
+        return JsonResponse({
+            "categories": categories,
+            "amounts": amounts
         })
     except Exception as e:
-        print(f"Error in spending_by_categories: {str(e)}")
-        return jsonify({"error": "An internal server error occurred."}), 500
+        import traceback
+        print("Error in spending_by_categories:")
+        print(traceback.format_exc())  # This will print the full error traceback
+        return JsonResponse({"error": str(e)}, status=500)
 
 @app.route('/plot_spending', methods=['GET'])
 @login_required

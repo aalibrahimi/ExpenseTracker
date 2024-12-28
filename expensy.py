@@ -15,7 +15,7 @@ import base64
 logging.basicConfig(filename='app.log',level=logging.ERROR)
 
 
-# FolderName = 'EXPENSETRACKER'
+# FolderName = 'ExpenseTracker'
 # TRANSACTION_FILE = os.path.join(FolderName, 'transaction.csv')
 TRANSACTION_FILE = 'transaction.csv'
 multiTransaction = []
